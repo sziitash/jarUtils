@@ -1,10 +1,5 @@
-package com.meizu.jarutil;
+package com.meizu.jarutil.okhttpUtils;
 
-import com.squareup.okhttp.MultipartBuilder;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,19 +13,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 /**
  * Created by libinhui on 2016/6/13.
  */
-public class okhttpUtils {
+public class newUtils {
     static JSONObject postUtil(OkHttpClient client,
                                String url,
                                HashMap hm) throws IOException, JSONException {
 
-        MultipartBuilder builder = new MultipartBuilder().type(MultipartBuilder.FORM);
+        FormBody.Builder builder = new FormBody.Builder();
         Set<String> setList = hm.keySet();
         //解析hashmap,构造post请求体
         for (String keystr : setList) {
-            builder.addFormDataPart(keystr, String.valueOf(hm.get(keystr)));
+            builder.add(keystr, String.valueOf(hm.get(keystr)));
         }
         RequestBody formBody = builder.build();
         Request request = new Request.Builder()
@@ -47,6 +47,7 @@ public class okhttpUtils {
         }
     }
 
+    //线程返回值Callable应用
     private static class runThread implements Callable<JSONObject> {
         private OkHttpClient cl;
         private String url;
@@ -65,8 +66,11 @@ public class okhttpUtils {
     }
 
     public static JSONObject getResponObj(OkHttpClient cl, String url, HashMap hm) throws ExecutionException, InterruptedException {
+        //创建线程
         runThread rtc = new runThread(cl, url, hm);
+        //把线程放入到线程池
         ExecutorService exec = Executors.newSingleThreadExecutor();
+        //使用Future处理线程和获取结果
         Future<JSONObject> task = exec.submit(rtc);
         JSONObject result = task.get();
         //关闭线程池
@@ -74,4 +78,3 @@ public class okhttpUtils {
         return result;
     }
 }
-
