@@ -3,6 +3,9 @@ package com.meizu.jarutil;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.media.MediaScannerConnection;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiEnterpriseConfig;
+import android.net.wifi.WifiManager;
 import android.os.SystemClock;
 import android.support.test.uiautomator.By;
 import android.support.test.uiautomator.UiDevice;
@@ -10,6 +13,10 @@ import android.support.test.uiautomator.Until;
 
 import junit.framework.Assert;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
@@ -98,8 +105,61 @@ public class ActionTools {
         return mLanguagelist;
     }
 
-    public static void updateMediaScanner(Context cn,String filePathAndName){
-        MediaScannerConnection.scanFile(cn,
-                new String[]{filePathAndName}, null, null);
+//    public static void updateMediaScanner(Context cn,String filePathAndName){
+//        MediaScannerConnection.scanFile(cn,
+//                new String[]{filePathAndName}, null, null);
+//    }
+
+    public void pressBackToFileManager(UiDevice mDevice,String packagename,int counts){
+        int count = 0;
+        while (true){
+            mDevice.pressBack();
+            SystemClock.sleep(500);
+            if(mDevice.getCurrentPackageName().equals(packagename)||count > counts){
+                break;
+            }
+            count++;
+        }
+    }
+
+    public static void copyFile(Context appContext,String filename) throws IOException {
+        OutputStream fos = null;
+        InputStream is = null;
+        String[] files = {filename};
+        byte bits[] = new byte[1024];
+        int length;
+        for (String afile : files) {
+            is = appContext.getResources().getAssets().open(filename);
+            fos = new FileOutputStream("/mnt/sdcard/"+afile);
+            while ((length = is.read(bits)) != -1) {
+                fos.write(bits, 0, length);
+            }
+            is.close();
+            fos.flush();
+            fos.close();
+        }
+        MediaScannerConnection.scanFile(appContext,
+                new String[]{"/mnt/sdcard/"+filename}, null, null);
+    }
+
+    public static void newSsidConnect(Context cn,String ssid){
+        WifiManager wfm = (WifiManager) cn.getSystemService(cn.WIFI_SERVICE);
+        WifiConfiguration config = new WifiConfiguration();
+        config.allowedAuthAlgorithms.clear();
+        config.allowedGroupCiphers.clear();
+        config.allowedKeyManagement.clear();
+        config.allowedPairwiseCiphers.clear();
+        config.allowedProtocols.clear();
+        config.SSID = ssid;
+        config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_EAP);
+        config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.IEEE8021X);
+        WifiEnterpriseConfig enterpriseConfig = new WifiEnterpriseConfig();
+        enterpriseConfig.setIdentity("atsms");
+        enterpriseConfig.setPassword("autotest123.123");
+        enterpriseConfig.setEapMethod(WifiEnterpriseConfig.Eap.PEAP);
+        enterpriseConfig.setPhase2Method(WifiEnterpriseConfig.Phase2.MSCHAPV2);
+        config.enterpriseConfig = enterpriseConfig;
+        Integer networkId = wfm.addNetwork(config);
+        wfm.enableNetwork(networkId, true); // this initiates the connection
     }
 }
