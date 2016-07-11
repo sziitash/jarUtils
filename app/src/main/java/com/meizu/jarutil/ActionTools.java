@@ -142,7 +142,7 @@ public class ActionTools {
                 new String[]{"/mnt/sdcard/"+filename}, null, null);
     }
 
-    public static void newSsidConnect(Context cn,String ssid){
+    public static void newSsidConnect(Context cn, String ssid, String account, String password){
         WifiManager wfm = (WifiManager) cn.getSystemService(cn.WIFI_SERVICE);
         WifiConfiguration config = new WifiConfiguration();
         config.allowedAuthAlgorithms.clear();
@@ -154,8 +154,8 @@ public class ActionTools {
         config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_EAP);
         config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.IEEE8021X);
         WifiEnterpriseConfig enterpriseConfig = new WifiEnterpriseConfig();
-        enterpriseConfig.setIdentity("atsms");
-        enterpriseConfig.setPassword("autotest123.123");
+        enterpriseConfig.setIdentity(account);
+        enterpriseConfig.setPassword(password);
         enterpriseConfig.setEapMethod(WifiEnterpriseConfig.Eap.PEAP);
         enterpriseConfig.setPhase2Method(WifiEnterpriseConfig.Phase2.MSCHAPV2);
         config.enterpriseConfig = enterpriseConfig;

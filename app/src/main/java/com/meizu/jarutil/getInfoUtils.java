@@ -2,6 +2,10 @@ package com.meizu.jarutil;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,6 +15,8 @@ import java.util.List;
  * Created by libinhui on 2016/6/29.
  */
 public class GetInfoUtils {
+    private static ConnectivityManager cm;
+    private static WifiManager wifi;
 
     /*
     获取应用版本号
@@ -31,5 +37,25 @@ public class GetInfoUtils {
         Date curDate = new Date(System.currentTimeMillis());
         String str = formatter.format(curDate);
         return str;
+    }
+
+    public static boolean isWifiIsConnected(Context cn){
+        cm = (ConnectivityManager) cn.getSystemService(cn.CONNECTIVITY_SERVICE);
+        NetworkInfo res = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        if(res != null){
+            return res.isConnected();
+        }
+        return false;
+    }
+
+    public static boolean getWifiSsid(String ssidname){
+        WifiInfo wii = wifi.getConnectionInfo();
+        String res = wii.getSSID().replace("\"","");
+        if(res.equals(ssidname)){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 }
