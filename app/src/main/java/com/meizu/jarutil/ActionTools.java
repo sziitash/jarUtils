@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Locale;
 
 //import android.support.test.uiautomator.By;
@@ -28,6 +29,7 @@ import java.util.Locale;
  * Created by libinhui on 2016/5/10.
  */
 public class ActionTools {
+    private static WifiManager wfm;
 
     private static void findObjTextSwipe(UiDevice xDevice, String xtext, int xcount, boolean xtype){
         int xnum = xDevice.getDisplayWidth()/2;
@@ -143,7 +145,7 @@ public class ActionTools {
     }
 
     public static void newSsidConnect(Context cn, String ssid, String account, String password){
-        WifiManager wfm = (WifiManager) cn.getSystemService(cn.WIFI_SERVICE);
+        wfm = (WifiManager) cn.getSystemService(cn.WIFI_SERVICE);
         WifiConfiguration config = new WifiConfiguration();
         config.allowedAuthAlgorithms.clear();
         config.allowedGroupCiphers.clear();
@@ -161,5 +163,13 @@ public class ActionTools {
         config.enterpriseConfig = enterpriseConfig;
         Integer networkId = wfm.addNetwork(config);
         wfm.enableNetwork(networkId, true); // this initiates the connection
+    }
+
+    public static void removeAllNetWork(){
+        List<WifiConfiguration> list = wfm.getConfiguredNetworks();
+        for( WifiConfiguration i : list ) {
+            wfm.removeNetwork(i.networkId);
+            wfm.saveConfiguration();
+        }
     }
 }
