@@ -3,9 +3,13 @@ package com.meizu.jarutil;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.media.MediaScannerConnection;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiEnterpriseConfig;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.test.uiautomator.By;
 import android.support.test.uiautomator.UiDevice;
@@ -21,15 +25,14 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
 
-//import android.support.test.uiautomator.By;
-//import android.support.test.uiautomator.UiDevice;
-//import android.support.test.uiautomator.Until;
 
 /**
  * Created by libinhui on 2016/5/10.
  */
 public class ActionTools {
     private static WifiManager wfm;
+    private static ConnectivityManager cm;
+    private static WifiManager.WifiLock wifiLock;
 
     private static void findObjTextSwipe(UiDevice xDevice, String xtext, int xcount, boolean xtype){
         int xnum = xDevice.getDisplayWidth()/2;
@@ -65,7 +68,7 @@ public class ActionTools {
         findObjTextSwipe(xDevice,xtext,xcount,false);
     }
 
-    //切换系统语言
+    //切换系统语言（必须要有系统签名权限）
     public static void updateSystemLanguage(String language,String country) {
         Locale updateLocale = getLocale(language,country);
         try {
@@ -95,6 +98,7 @@ public class ActionTools {
         Locale[] x = getSystemLanguageList();
         for (Locale locale : x) {
             if (locale.getLanguage().equals(language) && locale.getCountry().equals(country)) {
+
                 return locale;
             }
         }
@@ -170,6 +174,46 @@ public class ActionTools {
         for( WifiConfiguration i : list ) {
             wfm.removeNetwork(i.networkId);
             wfm.saveConfiguration();
+        }
+    }
+
+    public void notLockScreen(Context cn, int longtime){
+        PowerManager mgr = (PowerManager)cn.getSystemService(cn.POWER_SERVICE);
+        PowerManager.WakeLock wl = mgr.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,"test");
+        wl.acquire(longtime);
+    }
+
+    public static boolean isWifiIsConnected(Context cn){
+        cm = (ConnectivityManager) cn.getSystemService(cn.CONNECTIVITY_SERVICE);
+        NetworkInfo res = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        if(res != null){
+            return res.isConnected();
+        }
+        return false;
+    }
+
+    public static void onOffWiFi(boolean onoff){
+        wfm.setWifiEnabled(onoff);
+    }
+
+    public static void lockWiFi(String wifiname, boolean toLock){
+        wifiLock = wfm.createWifiLock(wifiname);
+        if (wifiLock.isHeld()&&toLock == false){
+            wifiLock.acquire();
+        }
+        else {
+            wifiLock.acquire();
+        }
+    }
+
+    public static boolean getWifiSsid(String ssidname){
+        WifiInfo wii = wfm.getConnectionInfo();
+        String res = wii.getSSID().replace("\"","");
+        if(res.equals(ssidname)){
+            return true;
+        }
+        else{
+            return false;
         }
     }
 }
